@@ -9,6 +9,7 @@
     loop:
       - maven
       - mysql
+      
   - name: Install PyMySQL
     ansible.builtin.pip:
       name: PyMySQL
