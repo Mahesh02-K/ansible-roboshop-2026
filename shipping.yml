@@ -10,7 +10,7 @@
 #     - maven
 #     - mysql
 
-  - name: Install tools
+  - name: Install maven and mysql
     ansible.builtin.dnf:
       name: "{{ item }}"
       state: present
