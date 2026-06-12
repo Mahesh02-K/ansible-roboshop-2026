@@ -70,17 +70,38 @@
 
   - name: check products loaded or not
     tags:
-    - import
-    ansible.builtin.command: mongosh --host mongodb.kakuturu.online --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+      - import
+    ansible.builtin.command: mongosh --host mongodb.kakuturu.online --quiet --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
     register: catalogue_output
+    # Crucial: This stops Ansible from crashing when the return code is not 0
+    failed_when: false 
 
   - name: print catalogue output
+    tags:
+      - import
     ansible.builtin.debug:
       msg: "{{ catalogue_output }}"
 
   - name: load products
+    tags:
+      - import
     ansible.builtin.shell: mongosh --host mongodb.kakuturu.online < /app/db/master-data.js
-    when: catalogue_output.stdout | int < 0 #if stdout value is greater than 0 then data is already loaded.
+    # Checks the return code (rc). If it failed (-1 / 1), it means database is missing, so load data.
+    when: catalogue_output.rc != 0 or catalogue_output.stdout.trim() == "-1"
+
+  # - name: check products loaded or not
+  #   tags:
+  #   - import
+  #   ansible.builtin.command: mongosh --host mongodb.kakuturu.online --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+  #   register: catalogue_output
+
+  # - name: print catalogue output
+  #   ansible.builtin.debug:
+  #     msg: "{{ catalogue_output }}"
+
+  # - name: load products
+  #   ansible.builtin.shell: mongosh --host mongodb.kakuturu.online < /app/db/master-data.js
+  #   when: catalogue_output.stdout | int < 0 #if stdout value is greater than 0 then data is already loaded.
 
 
 
