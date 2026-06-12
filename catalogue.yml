@@ -87,7 +87,7 @@
       - import
     ansible.builtin.shell: mongosh --host mongodb.kakuturu.online < /app/db/master-data.js
     # Checks the return code (rc). If it failed (-1 / 1), it means database is missing, so load data.
-    when: catalogue_output.rc != 0 or catalogue_output.stdout.trim() == "-1"
+    when: catalogue_output.rc != 0 #or catalogue_output.stdout.trim() == "-1"
 
   # - name: check products loaded or not
   #   tags:
