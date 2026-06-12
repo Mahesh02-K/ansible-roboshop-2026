@@ -1,0 +1,89 @@
+- name: configuring catalogue component
+  hosts: catalogue
+  become: yes
+  tasks:
+  - name: disbaling default nodejs
+    ansible.builtin.command: dnf module disable nodejs -y
+
+  - name: enabling nodejs 20
+    ansible.builtin.command: dnf module enable nodejs:20 -y
+
+  - name: installing nodejs 20
+    ansible.builtin.dnf:
+      name: nodejs
+      state: installed
+
+  - name: creating app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: creating system user
+    ansible.builtin.user:
+      name: roboshop
+      shell: /sbin/nologin
+      system: true
+      home: /app
+
+  - name: downloading catalogue code
+    ansible.builtin.get_url:
+      url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
+      dest: /tmp/catalogue.zip
+
+  # this module thinks file exist on ansible control server, needs to extract on to remote machine
+  # remote_src: yes means files already exist in catalogue server
+
+  - name: extract catalogue code
+    ansible.builtin.unarchive:
+      src: /tmp/catalogue.zip
+      dest: /app
+      remote_src: yes
+
+  - name: install dependencies #not available ansible module, so we use community module
+    community.general.npm:
+      path: /app
+
+  - name: copy catalogue service to system directory
+    ansible.builtin.copy:
+     src: catalogue.service
+     dest: /etc/systemd/system/catalogue.service
+
+  - name: systemctl daemon reload
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+  - name: start and enable catalogue service 
+    ansible.builtin.service:
+      name: catalogue
+      state: started
+      enabled: yes
+
+  - name: copy mongo repo
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: install mongodb clinet
+    ansible.builtin.dnf:
+      name: mongodb-mongosh
+      state: present
+
+  - name: check products loaded or not
+    ansible.builtin.command: mongosh --host mongodb.kakuturu.online --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+    register: catalogue_output
+
+  - name: print catalogue_output
+    ansible.builtin.debug:
+      msg: "{{ catalogue_output }}"
+
+  - name: load products
+    ansible.builtin.shell: mongosh --host mongodb.kakuturu.online </app/db/master-data.js
+    when: catalogue_output.stdout | int < 0 #if stdout value is greater than 0 then data is already loaded.
+
+
+
+
+
+
+
+
