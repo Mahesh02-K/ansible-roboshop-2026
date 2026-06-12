@@ -25,7 +25,7 @@
       system: true
       home: /app
 
-  - name: downling user code
+  - name: downloading user code
     ansible.builtin.get_url:
       url: https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip 
       dest: /tmp/user.zip
