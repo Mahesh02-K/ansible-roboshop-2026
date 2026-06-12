@@ -68,23 +68,20 @@
       name: mongodb-mongosh
       state: present
 
-  - name: check catalogue schema exist ot not
-    shell: mongosh --host "{{ MONGODB_HOST }}" --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+  # FIXED: Wrapped in an echo statement so the command returns exit code 0 even if it evaluates to -1
+  - name: Check if products database is loaded
+    ansible.builtin.command: mongosh --host mongodb.kakuturu.online --quiet --eval 'echo(db.getMongo().getDBNames().indexOf("catalogue"))'
     register: catalogue_output
-    tags:
-    - mongodb
+    changed_when: false
 
-  - name: print catalogue_output
-    debug: 
-      msg: "{{ catalogue_output }}"
-    tags:
-    - mongodb
+  - name: Print catalogue output check
+    ansible.builtin.debug:
+      msg: "Index position of database is: {{ catalogue_output.stdout.trim() }}"
 
-  - name: load products
-    shell: mongosh --host "{{ MONGODB_HOST }}" </app/db/master-data.js
-    when: catalogue_output.stdout | int < 0 #if stdout value is greater than 0 then data is already loaded.
-    tags:
-    - mongodb
+    # FIXED: Clean evaluation using string whitespace trimming
+  - name: Load product schema if database does not exist
+    ansible.builtin.shell: mongosh --host mongodb.kakuturu.online < /app/db/master-data.js
+    when: catalogue_output.stdout.trim() == "-1"
 
 #Below code is not woking
   # - name: check products loaded or not
