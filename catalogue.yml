@@ -69,22 +69,22 @@
       state: present
 
   - name: check catalogue schema exist ot not
-    shell: mongosh --host mongodb.kakuturu.online --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+    shell: mongosh --host "{{ MONGODB_HOST }}" --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
     register: catalogue_output
     tags:
-    - import
+    - mongodb
 
   - name: print catalogue_output
     debug: 
       msg: "{{ catalogue_output }}"
     tags:
-    - import
+    - mongodb
 
   - name: load products
-    shell: mongosh --host mongodb.kakuturu.online </app/db/master-data.js
+    shell: mongosh --host "{{ MONGODB_HOST }}" </app/db/master-data.js
     when: catalogue_output.stdout | int < 0 #if stdout value is greater than 0 then data is already loaded.
     tags:
-    - import
+    - mongodb
 
 #Below code is not woking
   # - name: check products loaded or not
