@@ -20,8 +20,8 @@
   - name: replace listen address from 127.0.0.1 to 0.0.0.0 to allow remote connections
     ansible.builtin.replace:
       path: /etc/mongod.conf 
-      regexp: '0.0.0.0'
-      replace: '127.0.0.1'
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
 
   - name: restart mongod service
     ansible.builtin.service:
