@@ -3,12 +3,13 @@
   become: yes
   tasks:
   - name: Install maven and mysql
-    ansible.builtin.dnf:
+    ansible.builtin.package:
       name: "{{ item }}"
       state: installed
     loop:
       - maven
       - mysql
+      - PyMySQL
 
   - name: Creating app directory
     ansible.builtin.file:
