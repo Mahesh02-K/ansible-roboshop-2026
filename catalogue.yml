@@ -62,6 +62,7 @@
     ansible.builtin.copy:
       src: mongo.repo
       dest: /etc/yum.repos.d/mongo.repo
+      mode: '0644'
 
   - name: install mongodb clinet
     ansible.builtin.dnf:
